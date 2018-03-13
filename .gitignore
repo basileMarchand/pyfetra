@@ -1,0 +1,12 @@
+# pyfetra
+# gitignore file
+# list file doesn't considered by git command
+
+# author : Basile Marchand
+
+*.geo
+*.pyc
+*.*~
+
+*.pvd
+*.vtu
