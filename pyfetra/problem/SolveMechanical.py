@@ -1,3 +1,23 @@
+#==============================================================================
+# Copyright (C) 2018 Marchand Basile
+# 
+# This file is part of pyfetra.
+# 
+# pyfetra is free software: you can redistribute it and/or modify
+# it under the terms of the GNU General Public License as published by
+# the Free Software Foundation, either version 3 of the License, or
+# any later version.
+# 
+# pyfetra is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+# GNU General Public License for more details.
+# 
+# You should have received a copy of the GNU General Public License
+# along with pyfetra.  If not, see <http://www.gnu.org/licenses/>
+#==============================================================================
+
+
 import numpy as np
 
 
@@ -53,9 +73,6 @@ class ProblemMechanical:
             #self.computeExternalLoad()
             
             ok_convergence = False
-            #lhs, rhs, rhs_diric = self.applyDirichlet(self._rhs_reaction, t)
-            ##resid = rhs - rhs_diric
-            ##resid0 = rhs.norm()
             self._bc["dirichlet"].setToZero( self._rhs_reaction )
             resid0 = self._rhs_reaction.norm()
             ddu = np.zeros((len(self._bc["dirichlet"]._active_dofs), 1))
@@ -65,12 +82,7 @@ class ProblemMechanical:
                 self.updateIncr( ddu )
                 self.computeInternalReac()
                 resid = self._rhs_reaction
-                
-                #lhs, rhs = self.applyDirichlet(resid, t)
-                #lhs, rhs, rhs_diric = self.applyDirichlet(self._rhs_reaction, t)
                 self._bc["dirichlet"].setToZero( resid )
-                ##resid = rhs - rhs_diric
-                ##- rhs_diric
                 residual = resid.norm()
                 ratio = residual/resid0 
                 module_logger.info("    iter {} : {} ({})".format(k+1, ratio, resid0) )
@@ -131,9 +143,6 @@ class ProblemMechanical:
 
         rhs_d = resid._data[self._bc["dirichlet"]._active_dofs] - self._bc["dirichlet"]._mat_if.dot(self._bc["dirichlet"].deltaValues(self._time.previous(), self._time.dt()) - self._solution._data["dU"][0]._data[fi_dofs].reshape((-1,1)) )
         
-
-        #rhs_d = self._bc["dirichlet"].constrainVector(resid, self._time.previous(), self._time.dt())
-        #rhs_diric = self._bc["dirichlet"].reaction(resid._mesh, self._time.previous(), self._time.dt())
         return lhs_d, rhs_d
     
     def initDofIncrement(self):

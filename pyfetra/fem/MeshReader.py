@@ -1,3 +1,22 @@
+#==============================================================================
+# Copyright (C) 2018 Marchand Basile
+# 
+# This file is part of pyfetra.
+# 
+# pyfetra is free software: you can redistribute it and/or modify
+# it under the terms of the GNU General Public License as published by
+# the Free Software Foundation, either version 3 of the License, or
+# any later version.
+# 
+# pyfetra is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+# GNU General Public License for more details.
+# 
+# You should have received a copy of the GNU General Public License
+# along with pyfetra.  If not, see <http://www.gnu.org/licenses/>
+#==============================================================================
+
 import numpy as np
 from operator import itemgetter
 
@@ -105,14 +124,12 @@ class GMSHReader(MeshReader):
             grp = ElemGroup(group_id)
             self._mesh_object.addGroup( grp )
             e_rk_list = [ int(x) for x in group_elem_array[group_elem_array[:,0]==group_id][:,1] ]
-            ##grp.setElements( group_elem_array[group_elem_array[:,0]==group_id][:,1].tolist() )
             grp.setElements( e_rk_list )
-            ##group_dic[str(group_id)] = group_elem_array[group_elem_array[:,0]==group_id][:,1].tolist()
-            
- 
+        
+    
 
 if __name__ == '__main__':
-    mesh_path = "../../TESTS/MESH_FILES/beam3d.msh"
+    mesh_path = "../../examples/DATA/beam3d.msh"
     reader = GMSHReader( mesh_path )
     reader.open()
     reader.read()

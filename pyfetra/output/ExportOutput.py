@@ -1,35 +1,31 @@
-
+#==============================================================================
+# Copyright (C) 2018 Marchand Basile
+# 
+# This file is part of pyfetra.
+# 
+# pyfetra is free software: you can redistribute it and/or modify
+# it under the terms of the GNU General Public License as published by
+# the Free Software Foundation, either version 3 of the License, or
+# any later version.
+# 
+# pyfetra is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+# GNU General Public License for more details.
+# 
+# You should have received a copy of the GNU General Public License
+# along with pyfetra.  If not, see <http://www.gnu.org/licenses/>
+#==============================================================================
 
 import os
 import logging
 import numpy as np
 
-# Corrispondence dictionnary between GMSH and PARAVIEW elements
-elem_paraview = {1 : 3,    # SEG2
-                      2 : 5,    # TRI3
-                      3 : 9,    # QUA4
-                      "TET4" : 10,   # TET4
-                      5 : 12,   # HEX8
-                      6 : 13,   # PRI6
-                      7 : 14,   # PYR5
-                      15: 1,    # VERTEX
-                      8 : 21,   # SEG3
-                      9 : 22,   # TRI6
-                      11 : 24,  # TET10
-                      16 : 23}  # QUA8 
+# Corrispondence dictionnary between pyfetra and PARAVIEW elements
+elem_paraview = {"TET4" : 10,} 
 
 # Paraview offset for each elements type
-offset_paraview = {3 : 2, 
-                   5 : 3, 
-                   9 : 4, 
-                   "TET4" : 4, 
-                   12 : 8, 
-                   13 : 6, 
-                   14 : 5,
-                   21 : 3,
-                   22 : 6,
-                   24 : 10,
-                   23 : 8}
+offset_paraview = {"TET4" : 4, }
 
 class ExportResults(object):
     def __init__(self, sol, nodal_fields, integ_fields, time, out_format, fname):
