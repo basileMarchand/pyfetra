@@ -74,12 +74,12 @@ sol.solve()
 # 7-Export results
 out = ExportResults(sol,
                     nodal_fields=["U",],
-                    integ_fields=["eto","sig"],
+                    integ_fields=[],
                     time = [1,2],
                     out_format="vtk",
                     fname="test")
 out.execute()
-#Output type : internal, vtk, gmsh 
+
 
 
 
