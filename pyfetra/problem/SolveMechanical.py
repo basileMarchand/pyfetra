@@ -52,8 +52,8 @@ class ProblemMechanical:
         #             b) the materials used and the associated internal variables needed
         self._solution.initializeDofs(self)
 
-        for mat in self._materials:
-            self._solution.initialize(mat)
+        ##for mat in self._materials:
+        self._solution.initialize(self._materials)
 
     def Type(self):
         return self._pb_type

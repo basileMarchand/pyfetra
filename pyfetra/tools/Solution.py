@@ -33,15 +33,16 @@ class Solution(object):
         else:
             raise ValueError("Not supporter problem type : {}".format(pb.Type()))
 
-    def initialize(self, mat):
+    def initialize(self, materials):
         if(self._mesh._ip_offset == None):
-            self._mesh.buildGlobalIp()
+            self._mesh.buildGlobalIp( materials )
 
-        for f in mat.needFields():
-            if f not in self._data.keys():
-                self._data[f] = [ IntegField(f, self._mesh) for i in self._time._full ]
-            else:
-                continue
+        for mat in materials:
+            for f in mat.needFields():
+                if f not in self._data.keys():
+                    self._data[f] = [ IntegField(f, self._mesh) for i in self._time._full ]
+                else:
+                    continue
 
     def getFieldAtElemInteg(self, f_name, time_incr, elem, ip ):
         return self._data[f_name][time_incr].getField(elem, ip)

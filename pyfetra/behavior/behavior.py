@@ -48,7 +48,7 @@ class Behavior:
 
     def components(self):
         """
-        Virtal method implemented in daughter
+        Virtual method implemented in daughter
         """
         raise NotImplementedError
 

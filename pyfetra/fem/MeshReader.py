@@ -32,6 +32,8 @@ class MeshReader:
         self._mesh_object = FemMesh( mesh_path )
 
 
+    def setFormulation(self, hypothesis ):
+        self._mesh_object.setFormulation( hypothesis )
 
 GMSH2PYTOTE={"1" : "SEG2",    # SEG2
              "2" : "TRI3",    # TRI3
@@ -62,7 +64,8 @@ class GMSHReader(MeshReader):
         self._content = filePath.read().split('\n')
         filePath.close()        
 
-    def read(self):
+    def read(self, hypothesis):
+        self.setFormulation( hypothesis )
         module_logger.info(" Read mesh : {}".format(self._mesh_path))
         n_line = len(self._content)
         while(self._index < n_line ):

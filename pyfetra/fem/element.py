@@ -31,15 +31,21 @@ class Element:
         self._dofs = []
         self._nnodes = 0
         self._ndofs=0
+
+        self._integrator = None
+        self._interpolator = None
+
+        """
         self._gx   = []
         self._gw   = []
         self._ngp  = 0
+        """
 
     def nbDof(self):
         return self._ndofs
 
     def nbIntegPts(self):
-        return self._ngp
+        return len(self._integrator)
 
     def getDofs(self):
         return self._dofs
@@ -94,15 +100,15 @@ class Element:
 
     def internalReactionAndTangent( self, pb, mat, tang_elem, reac_elem, t_incr):
         du_elem = pb._solution.getFieldAtNodes("dU",0,self._rank) 
-        for ip, w in enumerate(self._gw):
+        for ip in self._integrator:
             grad = self.grad(ip)
-            deto = grad.T.dot( du_elem )
+            deto = grad.dot( du_elem )
             mat.pull(self._rank, ip, pb._solution)
             tgt = mat.integrate(deto)
             mat.push(self._rank, ip, pb._solution)
-            w    = self.weight(ip)
-            det_j= self.jacobian(ip)
-            tang_elem[:,:] += w * det_j * grad.dot(tgt.dot(grad.T))
-            reac_elem[:,:] -= w * det_j * grad.dot(pb._solution.getFieldAtElemInteg("sig", t_incr, self._rank, ip))
+            w, xip = self._integrator[ip]
+            det_j= np.linalg.det(self._interpolator.jacobian(xip, self._coors[:,:pb._solution._mesh.dimension()]))
+            tang_elem[:,:] += w * det_j * grad.T.dot(tgt.dot(grad))
+            reac_elem[:,:] -= w * det_j * grad.T.dot(pb._solution.getFieldAtElemInteg("sig", t_incr, self._rank, ip))
 
     

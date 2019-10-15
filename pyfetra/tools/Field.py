@@ -66,6 +66,8 @@ def IntegComponent(fname, dim):
     if( fname in ["eto", "sig"] ):
         if (dim==3):
             return 6
+        elif dim==2:
+            return 3
 
 
 

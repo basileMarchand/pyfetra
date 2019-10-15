@@ -19,6 +19,7 @@
 
 
 import os
+import sys 
 
 class Factory(object):
     __instance = None
@@ -45,8 +46,11 @@ class Factory(object):
     def Create(base_obj, alias ):
         try:
             return Factory.Instance()._registar[base_obj][alias]()
-        except KeyError:
+        except KeyError as e:
             print("The object {} of type {} doesn't exists in the Factory".format(alias, base_obj))
+            print(e)
+            sys.exit(1)
+
 
     @staticmethod
     def Catalog():

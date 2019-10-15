@@ -9,18 +9,18 @@ LOGGER(job="elastic_linear", display='INFO', logfile='DEBUG')
 
 # 1-Define finite element mesh
 
-mesh = readMesh("../DATA/beam3d.msh", "GMSH", "MechSmallStrain")
-mesh.setDimension(3)
-mesh.nodeGroupFromElemGroup("3", "dbc1")
-mesh.nodeGroupFromElemGroup("4", "dbc2")
-mesh.renameElemGroup("5", "ALL")
+mesh = readMesh("../DATA/rectangle.msh", "GMSH", "MechSmallStrain")
+mesh.setDimension( 2 ) 
+mesh.nodeGroupFromElemGroup("1", "dbc1")
+mesh.nodeGroupFromElemGroup("2", "dbc2")
+mesh.renameElemGroup("0", "ALL")
 
 mesh.finalize()
 
 # 2-Define behavior
 mat1 = LinearElastic()
 mat1.setGroup("ALL")
-mat1.setCoefficients({"elasticity":{"hypothesis": ["isotrope",],
+mat1.setCoefficients({"elasticity":{"hypothesis": ["isotrope", "plane_strain"],
                                     "young":200000.,
                                     "poisson":0.3}
                       })
@@ -36,13 +36,13 @@ ud_y = lambda t: 0.
 ud_z = lambda t: 0.
 
 load_1 = Dirichlet(group="dbc1", 
-                   dofs=[0,1,2], 
-                   values=[ud_x,ud_y,ud_z])
+                   dofs=[0,1], 
+                   values=[ud_x,ud_y])
 
 ud_z2 = lambda t: t
 
 load_2 = Dirichlet(group="dbc2", 
-                   dofs=[0], 
+                   dofs=[0,], 
                    values=[ud_z2])
 
 boundary_conditions={"dirichlet" : load_1 + load_2,
@@ -80,7 +80,6 @@ out = ExportResults(sol,
                     out_format="vtk",
                     fname="test")
 out.execute()
-
 
 
 
