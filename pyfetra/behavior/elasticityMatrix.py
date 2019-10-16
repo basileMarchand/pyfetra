@@ -43,3 +43,15 @@ def elasticityMatrix( coeffs ):
 
     return ret
 
+
+
+
+def conductivityMatrix( coeffs ):
+    ret = None
+    if "plane" in coeffs["hypothesis"]:
+        k = coeffs["kappa"]
+        ret = np.diag(np.array([-k,-k]))
+    elif "isotrope" in coeffs["hypothesis"]:
+        k = coeffs["kappa"]
+        ret = np.diag(np.array([-k,-k,-k]))
+    return ret

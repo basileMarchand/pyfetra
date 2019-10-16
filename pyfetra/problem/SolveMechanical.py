@@ -20,131 +20,16 @@
 
 import numpy as np
 
-
-from ..tools import Factory, Solution, GlobalMatrix, GlobalVector
+from pyfetra.problem import Algorithm
+from pyfetra.tools import Factory, Solution, GlobalMatrix, GlobalVector
 
 import logging
 module_logger = logging.getLogger("pyfetra")
 
 
-class ProblemMechanical:
+class ProblemMechanical(Algorithm):
     def __init__(self, mesh, boundaries, materials, sequence, options):
+        super(ProblemMechanical, self).__init__(mesh, boundaries, materials, sequence, options)
         self._pb_type = "mechanical"
-        self._mesh = mesh
-        self._opt = options
-        self._bc  = boundaries
-        self._materials = materials
-        self._time = sequence
-        self._solution = Solution(mesh, sequence)
-        self._is_initialized = False
-        self._lhs = GlobalMatrix(self._mesh)
-        self._rhs_reaction = GlobalVector(self._mesh)
-        self._rhs_external = GlobalVector(self._mesh)
 
-    def initialize(self):
-        #-> Step 1 : initialize dirichlet boundary conditions 
-        #            i.e. compute active and imposed dofs id 
-        self._bc["dirichlet"].initialize(self._mesh)
-        #-> Step 2 : instanciate the choosen linear solver
-        self._linear_solver = Factory.Create("LinearSolver", self._opt["linear_solver"])
-        #-> Step 3 : instanciate and initialize the Solution object according to : 
-        #             a) the element formulation (nodel dofs)
-        #             b) the materials used and the associated internal variables needed
-        self._solution.initializeDofs(self)
-
-        ##for mat in self._materials:
-        self._solution.initialize(self._materials)
-
-    def Type(self):
-        return self._pb_type
-
-
-    def solve(self):
-        if( not self._is_initialized ):
-            self.initialize()
-
-        for i, t in enumerate(self._time):
-            self._incr = i+1
-            module_logger.info(" Increment {} - t = {}".format(i+1, t))
-            
-            self.initDofIncrement()
-                
-            self.computeInternalReac()
-            #self.computeExternalLoad()
-            
-            ok_convergence = False
-            self._bc["dirichlet"].setToZero( self._rhs_reaction )
-            resid0 = self._rhs_reaction.norm()
-            ddu = np.zeros((len(self._bc["dirichlet"]._active_dofs), 1))
-            for k in range(self._opt["iterations"]):
-                lhs, rhs = self.applyDirichlet2(self._rhs_reaction, t )
-                ddu = self._linear_solver.solve(lhs, rhs)
-                self.updateIncr( ddu )
-                self.computeInternalReac()
-                resid = self._rhs_reaction
-                self._bc["dirichlet"].setToZero( resid )
-                residual = resid.norm()
-                ratio = residual/resid0 
-                module_logger.info("    iter {} : {} ({})".format(k+1, ratio, resid0) )
-                if(  ratio < self._opt["ratio"] ):
-                    module_logger.info("     -> Newton algorithm converge in {} iterations with ratio {}".format(k+1, ratio))
-                    ok_convergence = True
-                    break
-                    
-            if not ok_convergence:
-                raise Exception("No convergence error in the global newton iterations")
-            else:
-                self.endIncrement()
-                
-    def updateIncr(self, ddU):
-        """
-        Update displacement increment 
-        """ 
-        #-> update U
-        self._solution._data["dU"][0]._data[self._bc["dirichlet"]._active_dofs] += ddU.ravel()
-        #-> set to zero K and Fint
-        self._lhs.reset()
-        self._rhs_reaction.reset()
-
-    def endIncrement(self):
-        self._solution._data["U"][self._incr]._data = self._solution._data["U"][self._incr-1]._data + self._solution._data["dU"][0]._data
-        self._solution._data["dU"][0].reset()
-        self._lhs.reset()
-        self._rhs_reaction.reset()
-        
-    def computeInternalReac(self):
-        module_logger.debug("compute internal reaction ...")
-        for mat in self._materials:
-            mat.attachTime(self._time.getIncr())
-            grp = self._mesh.getGroup("elem", mat.getGroup())
-            for elem_rk in grp._entities_rk:
-                elem = self._mesh.getElement(elem_rk)
-                tang_elem = np.zeros((elem.nbDof(), elem.nbDof()))
-                reac_elem = np.zeros((elem.nbDof(),1)) 
-                elem.internalReactionAndTangent( self, mat , tang_elem, reac_elem, self._time.getIncr())
-                self._lhs.addContribution(elem, tang_elem)
-                self._rhs_reaction.addContribution(elem, reac_elem)
-        module_logger.debug("done")
-
-    def computeExternalLoad(self):
-
-        raise NotImplementedError
-
-
-    def applyDirichlet2(self, resid,t):
-        """
-        Apply Dirichlet boundary conditions on the lhs and rhs
-        """
-
-        lhs_d = self._bc["dirichlet"].constrainOperator(self._lhs)
-
-        ac_dofs = self._bc["dirichlet"]._active_dofs
-        fi_dofs = self._bc["dirichlet"]._fixed_dofs
-
-        rhs_d = resid._data[self._bc["dirichlet"]._active_dofs] - self._bc["dirichlet"]._mat_if.dot(self._bc["dirichlet"].deltaValues(self._time.previous(), self._time.dt()) - self._solution._data["dU"][0]._data[fi_dofs].reshape((-1,1)) )
-        
-        return lhs_d, rhs_d
-    
-    def initDofIncrement(self):
-        self._bc["dirichlet"].setBoundaryDeltaValues(self._solution._data["dU"][0], self._time.previous(), self._time.dt())
         

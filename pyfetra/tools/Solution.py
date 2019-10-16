@@ -27,9 +27,14 @@ class Solution(object):
         self._data = {"main":{}, "grad":{}, "flux":{}, "vint":{}}
 
     def initializeDofs(self, pb):
+        self._data["primal"] = [NodalField("U", self._mesh) for i in self._time._full]
+        self._data["dprimal"] = [NodalField("dU", self._mesh),]
+
+
         if pb.Type() == "mechanical":
-            self._data["U"] = [NodalField("U", self._mesh) for i in self._time._full]
-            self._data["dU"] = [NodalField("dU", self._mesh),]
+            self._data["U"] = self._data["primal"]
+        elif pb.Type() == "thermal":
+            self._data["T"] = self._data["primal"]
         else:
             raise ValueError("Not supporter problem type : {}".format(pb.Type()))
 
@@ -38,11 +43,13 @@ class Solution(object):
             self._mesh.buildGlobalIp( materials )
 
         for mat in materials:
-            for f in mat.needFields():
+            for f,kind in mat.needFields():
                 if f not in self._data.keys():
-                    self._data[f] = [ IntegField(f, self._mesh) for i in self._time._full ]
+                    self._data[f] = [ IntegField(f,kind, self._mesh) for i in self._time._full ]
                 else:
                     continue
+
+            self._data["dual"] = self._data[mat.dualVariable()]
 
     def getFieldAtElemInteg(self, f_name, time_incr, elem, ip ):
         return self._data[f_name][time_incr].getField(elem, ip)

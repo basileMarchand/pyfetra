@@ -45,7 +45,8 @@ class NodalField(Field):
     def __init__(self, field_name, mesh):
         self._dof_by_node = None
         Field.__init__(self, field_name, mesh)
-        self._nb_component = NodeComponent(field_name, mesh.dimension())
+        self._nb_component = int(self._mesh.nbDof()/self._mesh.nbNode())
+        ###NodeComponent(field_name, mesh.dimension())
 
     def initialize( self ):
         self._data = np.zeros( self._mesh.nbDof() )
@@ -62,22 +63,26 @@ class NodalField(Field):
 
 
 
-def IntegComponent(fname, dim):
-    if( fname in ["eto", "sig"] ):
+def IntegComponent(kind, dim):
+    if kind=="tensor2":
         if (dim==3):
             return 6
         elif dim==2:
             return 3
+    elif kind=="vector":
+        return dim
+    elif kind=="scalar":
+        return 1
 
 
 
 class IntegField(Field):
-    def __init__(self, field_name, mesh):
+    def __init__(self, field_name, kind, mesh):
+        self._kind = kind
         Field.__init__(self, field_name, mesh)
 
-
     def initialize(self ):
-        self._nb_component = IntegComponent(self._name, self._mesh.dimension())
+        self._nb_component = IntegComponent(self._kind, self._mesh.dimension())
         self._data = np.zeros( self._mesh.nbIntegPoints()*self._nb_component )
 
     def getField(self, elem_rk, ip):

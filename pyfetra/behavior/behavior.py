@@ -20,7 +20,7 @@
 
 import numpy as np
 
-from .elasticityMatrix import elasticityMatrix
+from .elasticityMatrix import elasticityMatrix, conductivityMatrix
 
 class Behavior:
     def __init__(self):
@@ -34,6 +34,9 @@ class Behavior:
         self._elasticity = None
         self.installRequires()
 
+    def setGroup(self, group):
+        self._group = group
+
     def getGroup(self):
         return self._group
 
@@ -43,6 +46,8 @@ class Behavior:
                 break
             elif key=="elasticity":
                 self._elasticity = elasticityMatrix( coeffs["elasticity"] )
+            elif key=="conductivity":
+                self._conductivity = conductivityMatrix( coeffs["conductivity"] )
             else:
                 self._mat_coeffs[key] = coeffs[key]
 
@@ -55,18 +60,21 @@ class Behavior:
     def needFields(self):
         return self._require
 
+    def dualVariable(self):
+        return self._dual
+
     def attachTime(self, time_incr):
         self._increment = time_incr
 
 
     def pull(self, elem_rk, integ_pt, sol ):
-        for f in self._require:
+        for f,_ in self._require:
             self._data[f] = np.zeros(sol.getFieldShape(f))
             self._data[f] = sol.getFieldAtElemInteg(f, self._increment, elem_rk, integ_pt)
             self._data[f+"_ini"] = sol.getFieldAtElemInteg(f, self._increment-1, elem_rk, integ_pt)
        
     def push(self, elem_rk, integ_pt, sol ):
-        for f in self._require:
+        for f,_ in self._require:
             sol.setFieldAtElemInteg(f, self._increment, elem_rk, integ_pt, self._data[f]) 
             
          
@@ -74,8 +82,5 @@ class Behavior:
     def integrate(self, deps ):
         raise NotImplementedError
 
-
-    def yieldGrad(self ):
-        raise NotImplementedError
 
 

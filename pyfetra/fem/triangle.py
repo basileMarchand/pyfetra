@@ -3,7 +3,7 @@ import numpy as np
 
 from pyfetra.fem.element import Element
 from pyfetra.fem import GetIntegrator, GetInterpolator
-from pyfetra.tools import Factory 
+from pyfetra.tools import Factory, myDet2
 
 class Triangle3Nodes(Element):
     def __init__(self):
@@ -13,9 +13,12 @@ class Triangle3Nodes(Element):
         self._ndofByNode = None
         self._dofsByNode = None
 
+    def det(self, mat):
+        return myDet2(mat)
+
 class Triangle3Thermal(Triangle3Nodes):
     def __init__(self):
-        super(Triangle3Nodes, self).__init__()
+        super(Triangle3Thermal, self).__init__()
         self._ndofByNode = 1
         self._dofsByNode = ['T',]
 
@@ -29,7 +32,7 @@ class Triangle3Thermal(Triangle3Nodes):
 
     def grad( self, ip ):
         _, x = self._integrator[ip]
-        return self._interpolator.dshape_dx(x, self._coors )
+        return self._interpolator.dshape_dx(x, self._coors[:,:2] )
     
 Factory.Register("Element", Triangle3Thermal, "TRI3Thermal")
 

@@ -13,6 +13,16 @@ class Seg2Nodes(Element):
         self._dofsByNode = None
 
 
+class Seg2Thermal(Seg2Nodes):
+    def __init__(self):
+        super(Seg2Thermal, self).__init__()
+        self._ndofByNode = 1
+        self._dofsByNode = ["T",]
+        self._integrator = GetIntegrator("SEG2PT")
+
+Factory.Register("Element", Seg2Thermal, "SEG2Thermal")
+
+
 class Seg2MechSmallStrain(Seg2Nodes):
     def __init__(self):
         super(Seg2MechSmallStrain, self).__init__()

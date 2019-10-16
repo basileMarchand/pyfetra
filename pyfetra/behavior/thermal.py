@@ -18,25 +18,21 @@
 #==============================================================================
 
 
-import numpy as np
 
-def myDet3(m):
-    m_det = m[0][0]*(m[1,1]*m[2,2]-m[1,2]*m[2,1])+m[0][1]*(m[1,2]*m[2,0]-m[1,0]*m[2,2])+m[0][2]*(m[1,0]*m[2,1]-m[1,1]*m[2,0])
-    return m_det
-
-def myDet2(m):
-    return m[0][0]*m[1,1]-m[1,0]*m[0,1]
+from .behavior import Behavior
 
 
-def myInv3(m):
-    m_det = myDet3(m)
-    m_inv = (1./m_det) * np.array([[m[1,1]*m[2,2]-m[1,2]*m[2,1] , m[0,2]*m[2,1]-m[0,1]*m[2,2] , m[0,1]*m[1,2]-m[0,2]*m[1,1] ],
-                                   [m[1,2]*m[2,0]-m[1,0]*m[2,2] , m[0,0]*m[2,2]-m[0,2]*m[2,0] , m[0,2]*m[1,0]-m[0,0]*m[1,2] ],
-                                   [m[1,0]*m[2,1]-m[1,1]*m[2,0] , m[0,1]*m[2,0]-m[0,0]*m[2,1] , m[0,0]*m[1,1]-m[0,1]*m[1,0] ]])
-    return m_inv
+class Thermal(Behavior):
+    def __init__(self):
+        super(Thermal, self).__init__()
 
-
-def myInv2(m):
-    m_det = myDet2(m)
-    m_inv = (1./m_det) * np.array([[ m[1,1],-m[0,1]],[-m[1,0],m[0,0] ]])
-    return m_inv
+    def installRequires(self):
+        self._coeffs_req = ["conductivity",]
+        self._dual = "q"
+        self._require = [("gradT","vector"), ("q", "vector")]
+        
+    def integrate(self, delta_grad ):
+        self._data["gradT"][:,:] = self._data["gradT_ini"] + delta_grad
+        self._data["q"][:,:] = self._conductivity.dot( self._data["gradT"] )
+        tgt = self._conductivity
+        return tgt

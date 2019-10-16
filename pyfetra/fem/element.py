@@ -71,9 +71,9 @@ class Element:
     def initializeDofs(self):
         self._ndofs = self._nnodes*self._ndofByNode
         self._dofs = [None]*(self._ndofs)
+        
         for i, rk in enumerate(self._connec):
             for j in range(self._ndofByNode):
-
                 self._dofs[i*self._ndofByNode+j] = rk*self._ndofByNode + j
  
     def setConnectivity(self, connec, nodes):
@@ -98,8 +98,11 @@ class Element:
     def weight(self, ip ):
         return self._gw[ip]
 
+    def det(self, mat):
+        raise NotImplementedError
+
     def internalReactionAndTangent( self, pb, mat, tang_elem, reac_elem, t_incr):
-        du_elem = pb._solution.getFieldAtNodes("dU",0,self._rank) 
+        du_elem = pb._solution.getFieldAtNodes("dprimal",0,self._rank) 
         for ip in self._integrator:
             grad = self.grad(ip)
             deto = grad.dot( du_elem )
@@ -107,8 +110,8 @@ class Element:
             tgt = mat.integrate(deto)
             mat.push(self._rank, ip, pb._solution)
             w, xip = self._integrator[ip]
-            det_j= np.linalg.det(self._interpolator.jacobian(xip, self._coors[:,:pb._solution._mesh.dimension()]))
+            det_j= np.abs(self.det(self._interpolator.jacobian(xip, self._coors[:,:pb._solution._mesh.dimension()])))
             tang_elem[:,:] += w * det_j * grad.T.dot(tgt.dot(grad))
-            reac_elem[:,:] -= w * det_j * grad.T.dot(pb._solution.getFieldAtElemInteg("sig", t_incr, self._rank, ip))
+            reac_elem[:,:] -= w * det_j * grad.T.dot(pb._solution.getFieldAtElemInteg("dual", t_incr, self._rank, ip))
 
     
