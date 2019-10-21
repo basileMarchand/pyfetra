@@ -41,11 +41,17 @@ class GlobalMatrix:
         e_data = elem_matrix.ravel()
         dofs = elem.getDofs()
         nb_dofs = elem.nbDof()
-        e_irn  = np.repeat(dofs, nb_dofs)
-        e_jcn  = np.tile(dofs, nb_dofs)
+        #import pdb
+        #pdb.set_trace()
+        ###e_irn  = np.repeat(dofs, nb_dofs)
+        ###e_jcn  = np.tile(dofs, nb_dofs)
+        e_irn = [ x for x in dofs for i in range(nb_dofs) ]
+        e_jcn = [ x for i in range(nb_dofs) for x in dofs ]
         self._data += e_data.tolist()
-        self._irn  += e_irn.tolist()
-        self._jcn  += e_jcn.tolist()
+        #self._irn  += e_irn.tolist()
+        #self._jcn  += e_jcn.tolist()
+        self._irn += e_irn
+        self._jcn += e_jcn
         
     def getSparse(self):
         ret = sp.coo_matrix((self._data,(self._irn, self._jcn)), (self._rows, self._cols))
