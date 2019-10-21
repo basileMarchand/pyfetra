@@ -28,7 +28,6 @@ class LinearSolver(object):
     def __init__(self):
         self._solver_type = "fake"
         
-
     def solve(self, lhs, rhs):
         raise NotImplementedError
 
@@ -39,10 +38,20 @@ class ScipySparseLinSolve(LinearSolver):
         LinearSolver.__init__(self)
         self._solver_type = "scipy.sparse"
         
-
     def solve(self, lhs, rhs):
         lhs_sp = lhs.getSparse().tocsc()
         res = spl.spsolve(lhs_sp, rhs)
+        return res.reshape((-1,1))
+
+
+class ScipySparseCG(LinearSolver):
+    def __init__(self):
+        super(ScipySparseCG, self).__init__()
+        self._solver_type = "scipy.sparse.cg"
+        
+    def solve(self, lhs, rhs):
+        lhs_sp = lhs.getSparse().tocsc()
+        res, info = spl.cg(lhs_sp, rhs)
         return res.reshape((-1,1))
         
 
@@ -50,3 +59,4 @@ class ScipySparseLinSolve(LinearSolver):
 
 ### Register the Scipy sparse solver in the object factory
 Factory.Register("LinearSolver", ScipySparseLinSolve, "scipy.sparse")
+Factory.Register("LinearSolver", ScipySparseCG, "scipy.sparse.cg")
