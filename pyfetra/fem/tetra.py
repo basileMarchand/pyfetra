@@ -4,7 +4,7 @@ import numpy as np
 
 from pyfetra.fem.element import Element
 from pyfetra.fem import GetIntegrator, GetInterpolator
-from pyfetra.tools import Factory 
+from pyfetra.tools import Factory, myDet3
 
 
 class Tetra4Nodes(Element):
@@ -15,6 +15,9 @@ class Tetra4Nodes(Element):
         self._ndofByNode = None
         self._dofsByNode = None
 
+    def det(self, mat):
+        return myDet3(mat)
+        
     
 class Tetra4Thermal(Tetra4Nodes):
     def __init__(self):
