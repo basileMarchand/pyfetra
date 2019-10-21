@@ -27,8 +27,8 @@ from .triangle import Triangle3Nodes, Triangle3Thermal, Triangle3MechSmallStrain
 from .tetra import Tetra4Nodes, Tetra4Thermal, Tetra4MechSmallStrain
 
 
-from .Mesh import FemMesh, Group, ElemGroup
-from .MeshReader import MeshReader, GMSHReader
+from .mesh import FemMesh, Group, ElemGroup
+from .meshReader import MeshReader, GMSHReader
 
 def readMesh( mesh_path, mesh_format, mesh_hypothesis):
     reader = GMSHReader( mesh_path )
