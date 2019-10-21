@@ -42,7 +42,10 @@ class Algorithm(object):
     def initialize(self):
         #-> Step 1 : initialize dirichlet boundary conditions 
         #            i.e. compute active and imposed dofs id 
-        self._bcs["dirichlet"].initialize(self._mesh)
+        self._bcs["dirichlet"].initialize(self)
+        #-> Instanciate the non linear solver 
+        self._nl_solver = Factory.Create("NonLinearSolver", self._opt["algorithm"])
+        self._nl_solver.initialize( self, self._opt )
         #-> Step 2 : instanciate the choosen linear solver
         self._linear_solver = Factory.Create("LinearSolver", self._opt["linear_solver"])
         #-> Step 3 : instanciate and initialize the Solution object according to : 
@@ -66,6 +69,14 @@ class Algorithm(object):
             
             self.initDofIncrement()
                 
+            try:
+                self._nl_solver.solve( i, t)
+            except Exception as e:
+                raise e
+
+            self.endIncrement()
+
+            """
             self.computeInternalReac()
             #self.computeExternalLoad()
             
@@ -92,16 +103,7 @@ class Algorithm(object):
                 raise Exception("No convergence error in the global newton iterations")
             else:
                 self.endIncrement()
-                
-    def updateIncr(self, ddU):
-        """
-        Update displacement increment 
-        """ 
-        #-> update U
-        self._solution._data["dprimal"][0]._data[self._bcs["dirichlet"]._active_dofs] += ddU.ravel()
-        #-> set to zero K and Fint
-        self._lhs.reset()
-        self._rhs_reaction.reset()
+            """ 
 
     def endIncrement(self):
         self._solution._data["primal"][self._incr]._data = self._solution._data["primal"][self._incr-1]._data + self._solution._data["dprimal"][0]._data
@@ -109,7 +111,7 @@ class Algorithm(object):
         self._lhs.reset()
         self._rhs_reaction.reset()
         
-    def computeInternalReac(self):
+    def computeSystem(self):
         module_logger.debug("compute internal reaction ...")
         for mat in self._materials:
             mat.attachTime(self._time.getIncr())
@@ -126,22 +128,17 @@ class Algorithm(object):
     def computeExternalLoad(self):
 
         raise NotImplementedError
-
-
-    def applyDirichlet2(self, resid,t):
-        """
-        Apply Dirichlet boundary conditions on the lhs and rhs
-        """
-
-        lhs_d = self._bcs["dirichlet"].constrainOperator(self._lhs)
-
-        ac_dofs = self._bcs["dirichlet"]._active_dofs
-        fi_dofs = self._bcs["dirichlet"]._fixed_dofs
-
-        rhs_d = resid._data[self._bcs["dirichlet"]._active_dofs] - self._bcs["dirichlet"]._mat_if.dot(self._bcs["dirichlet"].deltaValues(self._time.previous(), self._time.dt()) - self._solution._data["dprimal"][0]._data[fi_dofs].reshape((-1,1)) )
-        
-        return lhs_d, rhs_d
     
     def initDofIncrement(self):
         self._bcs["dirichlet"].setBoundaryDeltaValues(self._solution._data["dprimal"][0], self._time.previous(), self._time.dt())
 
+    def updateSolution(self, ddU ):
+        """
+        Update primal dof increment 
+        """ 
+        #-> update U
+        self._solution._data["dprimal"][0]._data[self._bcs["dirichlet"]._active_dofs] += ddU.ravel()
+        #-> set to zero K and Fint
+        #### Now in the NonLinearSolver 
+        ##self._boss._lhs.reset()
+        ##self._boss._rhs_reaction.reset()

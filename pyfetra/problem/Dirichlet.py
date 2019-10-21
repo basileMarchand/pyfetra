@@ -38,14 +38,18 @@ class Dirichlet:
         self._fixed_dofs  = []
         self._fixed_values=[]
 
-    def initialize(self, mesh ):
+    def initialize(self, boss ):
         """
         Method which compute active/locked dofs
         """
+
+        ### Attach time object
+        self._boss = boss
+
         for grp_name, direc, value in zip(self._group[0], self._directions[0], self._values[0]):
-            grp = mesh.getNodeGroup(grp_name)
+            grp = self._boss._mesh.getNodeGroup(grp_name)
             for node in grp:
-                node_dofs = mesh.getDofsOnNode(node)
+                node_dofs = self._boss._mesh.getDofsOnNode(node)
                 self._fixed_dofs += node_dofs[direc].tolist()
                 self._fixed_values += value
 
@@ -53,7 +57,7 @@ class Dirichlet:
         if( len(self._fixed_dofs) != len(set(self._fixed_dofs))):
             module_logger.error("At least on DOFs is overconstrains")
 
-        tmp = np.arange(0, mesh.nbDof())
+        tmp = np.arange(0, self._boss._mesh.nbDof())
         self._active_dofs = list( np.delete(tmp, self._fixed_dofs))
             
 
@@ -157,3 +161,18 @@ class Dirichlet:
         res = GlobalVector(mesh)
         res.setFromNumpy( tmp )
         return res        
+
+
+    def constrainSystem(self, _lhs, _rhs):
+        """
+        Apply Dirichlet boundary conditions on the lhs and rhs
+        """
+
+        lhs_d = self.constrainOperator(_lhs)
+
+        ac_dofs = self._active_dofs
+        fi_dofs = self._fixed_dofs
+
+        rhs_d = _rhs._data[ac_dofs] - self._mat_if.dot(self.deltaValues(self._boss._time.previous(), self._boss._time.dt()) - self._boss._solution._data["dprimal"][0]._data[fi_dofs].reshape((-1,1)) )
+        
+        return lhs_d, rhs_d
