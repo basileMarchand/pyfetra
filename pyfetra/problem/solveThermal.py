@@ -16,26 +16,13 @@
 # You should have received a copy of the GNU General Public License
 # along with pyfetra.  If not, see <http://www.gnu.org/licenses/>
 #==============================================================================
+import numpy as np
+
+from pyfetra.problem import Algorithm 
 
 
-from .ElemSkeleton import Element
-from ..tools import Factory
+class ProblemThermal(Algorithm):
+    def __init__(self, mesh, boundaries, materials, sequence, options):
+        super(ProblemThermal, self).__init__(mesh, boundaries, materials, sequence, options)
+        self._pb_type = "thermal"
 
-class Tri3(Element):
-    def __init__(self):
-        Element.__init__(self)
-        self._type = "TRI3"
-        
-
-
-
-class Tri3MechSmallStrain(Tri3):
-    def __init__(self):
-        Tri3.__init__(self)
-        self._type = "TRI3"
-
-
-
-# Register Tri3MechSmallDef in the object factory
-
-Factory.Register("Element", Tri3MechSmallStrain, "TRI3MechSmallStrain")

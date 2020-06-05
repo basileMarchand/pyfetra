@@ -22,10 +22,13 @@ import logging
 import numpy as np
 
 # Corrispondence dictionnary between pyfetra and PARAVIEW elements
-elem_paraview = {"TET4" : 10,} 
+elem_paraview = {"TET4" : 10,
+                 "TRI3": 5} 
+
 
 # Paraview offset for each elements type
-offset_paraview = {"TET4" : 4, }
+offset_paraview = {"TET4" : 4, 
+                   "TRI3": 3}
 
 class ExportResults(object):
     def __init__(self, sol, nodal_fields, integ_fields, time, out_format, fname):

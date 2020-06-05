@@ -19,8 +19,9 @@
 
 
 import numpy as np
-from .ElemSkeleton import Element
-from ..tools import Factory
+from pyfetra.fem import Element
+
+from pyfetra.tools import Factory
 
 class FemMesh:
     __nelem = 0
@@ -28,10 +29,20 @@ class FemMesh:
 
     def __init__(self, msh_name):
         self.msh_name = msh_name
+        self._formulation = None
+        self._dimension = 3
         self._groups = {"elem":{}, "node":{}}
         self._dofsOnNodes = []
         self._nb_dofs = 0
         self._ip_offset = None
+
+    def setFormulation( self, hypothesis ):
+        if isinstance(hypothesis, str ):
+            self._formulation = hypothesis
+        elif len( hypothesis )==1:
+            self._formulation = hypothesis[0]
+        else:
+            raise Exception("Multiple hypothesis not yet implemented")
 
     def getElement(self, index):
         return self._elements[index]
@@ -56,7 +67,7 @@ class FemMesh:
 
 
     def addElement(self, rank, e_type, connectivity):
-        elem = Factory.Create("Element", e_type + "MechSmallStrain")
+        elem = Factory.Create("Element", e_type + self._formulation )
         elem.setRank( rank )
         elem.setConnectivity(connectivity, self.__nodes)
         self._elements[rank] = elem
@@ -71,14 +82,27 @@ class FemMesh:
 
         print("Global number of dofs : {}".format(self._nb_dofs))
 
-    def buildGlobalIp(self):
+    def buildGlobalIp(self, materials):
+        """
+        integrated_elements = []
+        for mat in materials:
+            grp_name = mat.getGroup()
+            integrated_elements += self.getGroup("elem", grp_name)._entities_rk
+
+        single = list(set(integrated_element))
+        """
+
+        ### TODO : keep only true integrated elements 
         self._ip_offset = [0]*(self.__nelem+1)
         for e in self._elements:
-            self._ip_offset[e._rank+1] = self._ip_offset[e._rank] + e._ngp
+            self._ip_offset[e._rank+1] = self._ip_offset[e._rank] + e.nbIntegPts()
         
 
     def addGroup(self, grp):
-        self._groups["elem"][grp.name()] = grp
+        if isinstance(grp, ElemGroup):
+            self._groups["elem"][grp.name()] = grp
+        elif isinstance(grp, NodeGroup):
+            self._groups["node"][grp.name()] = grp
         
     def nbNode(self):
         return self.__nnode
@@ -92,8 +116,11 @@ class FemMesh:
     def nbIntegPoints(self):
         return self._ip_offset[-1]
 
+    def setDimension(self, d ):
+        self._dimension = d
+
     def dimension(self):
-        return 3
+        return self._dimension
 
     def nodeGroupFromElemGroup(self, elem_group_name, node_group_name):
         grp = self._groups["elem"][elem_group_name]

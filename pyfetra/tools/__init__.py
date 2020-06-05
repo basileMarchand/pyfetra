@@ -8,4 +8,4 @@ from .GlobalOperator import GlobalMatrix, GlobalVector
 from .linearSolver import LinearSolver, ScipySparseLinSolve
 
 
-from .mathUtils import myInv3, myDet3
+from .mathUtils import myInv3, myDet3, myDet2, myInv2

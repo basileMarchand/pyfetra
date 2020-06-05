@@ -26,13 +26,10 @@ class LinearElastic(Behavior):
     def __init__(self):
         Behavior.__init__(self)
         
-
-    def setGroup(self, group):
-        self._group = group
-
     def installRequires(self):
         self._coeffs_req = ["elasticity",]
-        self._require = ["eto","sig"]
+        self._dual = "sig"
+        self._require = [("eto", "tensor2"),("sig", "tensor2")]
 
 
     def integrate( self, deto ):
