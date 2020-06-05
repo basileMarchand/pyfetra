@@ -1,10 +1,12 @@
 __all__=["readMesh"]
 
 
-from .integrator import Tetra4PtInteg, Tri1PtInteg, Seg2PtInteg
+from .integrator import Tetra4PtInteg, Tetra1PtInteg, Tri1PtInteg, Tri3PtInteg, Seg2PtInteg
 
 __internal_integrator = {"TETRA4PT": Tetra4PtInteg(),
+                         "TETRA1PT": Tetra1PtInteg(),
                          "TRI1PT": Tri1PtInteg(),
+                         "TRI3PT": Tri3PtInteg(),
                          "SEG2PT": Seg2PtInteg()}
 
 
@@ -27,13 +29,16 @@ from .triangle import Triangle3Nodes, Triangle3Thermal, Triangle3MechSmallStrain
 from .tetra import Tetra4Nodes, Tetra4Thermal, Tetra4MechSmallStrain
 
 
-from .mesh import FemMesh, Group, ElemGroup
-from .meshReader import MeshReader, GMSHReader
+from .mesh import FemMesh, Group, ElemGroup, NodeGroup
+from .meshReader import MeshReader, GMSHReader, GeofMeshReader
 
 def readMesh( mesh_path, mesh_format, mesh_hypothesis):
-    reader = GMSHReader( mesh_path )
+    if mesh_format == "GMSH":
+        reader = GMSHReader( mesh_path )
+    elif mesh_format == "GEOF":
+        reader = GeofMeshReader(mesh_path)
     reader.open()
     reader.read( mesh_hypothesis )
     return reader._mesh_object
 
-
+from .utilities import computeGradMatrix, computeL2Matrix

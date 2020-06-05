@@ -47,7 +47,7 @@ class Tetra4MechSmallStrain(Tetra4Nodes):
         self._ndofByNode = 3
         self._dofsByNode = ['U1', 'U2', 'U3']
     
-        self._integrator = GetIntegrator("TETRA4PT")
+        self._integrator = GetIntegrator("TETRA1PT")
         self._interpolator = GetInterpolator("TETRA4NODES")
     
     def shape( self, ip ):

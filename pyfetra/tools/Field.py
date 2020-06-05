@@ -19,7 +19,7 @@
 
 
 import numpy as np
-
+import math 
 
 class Field(object):
     def __init__(self, field_name, mesh):
@@ -84,14 +84,33 @@ class IntegField(Field):
     def initialize(self ):
         self._nb_component = IntegComponent(self._kind, self._mesh.dimension())
         self._data = np.zeros( self._mesh.nbIntegPoints()*self._nb_component )
+        if self._kind == "tensor2" and self._mesh.dimension()==2:
+            def add_sqrt2( tens ):
+                return np.array([x for x in tens[:2]] + [ math.sqrt(2.)*x for x in tens[2:]])
+            def del_sqrt2( tens ):
+                return np.array([x for x in tens[:2]] + [ x/math.sqrt(2.) for x in tens[2:]])
+        elif self._kind == "tensor2" and self._mesh.dimension()==3:
+            def add_sqrt2( tens ):
+                return np.array([x for x in tens[:3]] + [ math.sqrt(2.)*x for x in tens[3:]])
+            def del_sqrt2( tens ):
+                return np.array([x for x in tens[:3]] + [ x/math.sqrt(2.) for x in tens[3:]])
+        else:
+            def add_sqrt2( tens ):
+                return tens
+            def del_sqrt2(tens):
+                return tens
+            
+        self._add_sqrt2 = add_sqrt2
+        self._del_sqrt2 = del_sqrt2
+
 
     def getField(self, elem_rk, ip):
         global_ip = self._mesh.getGlobalIp(elem_rk) + ip
-        return self._data[global_ip:(global_ip+self._nb_component)].reshape((-1,1))
+        return self._add_sqrt2(self._data[global_ip:(global_ip+self._nb_component)].reshape((-1,1)))
 
     def setField(self, elem_rk, ip, val):
         global_ip = self._mesh.getGlobalIp(elem_rk) + ip
-        self._data[global_ip:(global_ip+self._nb_component)] = val.ravel()
+        self._data[global_ip:(global_ip+self._nb_component)] = self._del_sqrt2(val.ravel())
 
 
     def getFieldReference(self, elem_rk, ip, out):

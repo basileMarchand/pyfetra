@@ -99,7 +99,10 @@ class FemMesh:
         
 
     def addGroup(self, grp):
-        self._groups["elem"][grp.name()] = grp
+        if isinstance(grp, ElemGroup):
+            self._groups["elem"][grp.name()] = grp
+        elif isinstance(grp, NodeGroup):
+            self._groups["node"][grp.name()] = grp
         
     def nbNode(self):
         return self.__nnode

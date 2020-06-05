@@ -36,3 +36,6 @@ class Thermal(Behavior):
         self._data["q"][:,:] = self._conductivity.dot( self._data["gradT"] )
         tgt = self._conductivity
         return tgt
+
+    def getLinearOperator(self):
+        return self._conductivity

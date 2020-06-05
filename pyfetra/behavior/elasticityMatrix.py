@@ -29,17 +29,19 @@ def elasticityMatrix( coeffs ):
             ret = E/((1.+NU)*(1.-2.*NU)) * np.array([[1-NU,NU  ,0.],
                                                      [NU  ,1-NU,0.],
                                                      [0.  ,0.  ,0.5-NU]])
-                                                     ###[NU  ,NU  ,0.,],
     else:
         if( "isotrope" in coeffs["hypothesis"] ):
             E = coeffs["young"]
             NU = coeffs["poisson"]
-            ret = E/((1.+NU)*(1.-2.*NU)) * np.array([[1-NU,NU,NU,0.,0.,0.],
-                                                     [NU,1-NU,NU,0.,0.,0.],
-                                                     [NU,NU,1-NU,0.,0.,0.],
-                                                     [0.,0.,0.,0.5-NU,0.,0.],
-                                                     [0.,0.,0.,0.,0.5-NU,0.],
-                                                     [0.,0.,0.,0.,0.,0.5-NU]])
+            lame0 = E/(1+NU)
+            lame1 = E*NU/((1+NU)*(1-2*NU))
+            lame = lame0 + lame1
+            ret = np.array([[lame,lame1,lame1,0.,0.,0.],
+                            [lame1,lame,lame1,0.,0.,0.],
+                            [lame1,lame1,lame,0.,0.,0.],
+                            [0.,0.,0.,lame0,0.,0.],
+                            [0.,0.,0.,0.,lame0,0.],
+                            [0.,0.,0.,0.,0.,lame0]])
 
     return ret
 
@@ -53,5 +55,5 @@ def conductivityMatrix( coeffs ):
         ret = np.diag(np.array([-k,-k]))
     elif "isotrope" in coeffs["hypothesis"]:
         k = coeffs["kappa"]
-        ret = np.diag(np.array([-k,-k,-k]))
+        ret = np.diag(np.array([-k,-k,-k]))    
     return ret

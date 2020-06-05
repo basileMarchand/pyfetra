@@ -78,9 +78,13 @@ class Behavior:
             sol.setFieldAtElemInteg(f, self._increment, elem_rk, integ_pt, self._data[f]) 
             
          
+    def installRequires(self):
+        raise NotImplementedError
     
     def integrate(self, deps ):
         raise NotImplementedError
 
+    def getLinearOperator(self):
+        raise NotImplementedError
 
 

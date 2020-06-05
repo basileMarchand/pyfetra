@@ -20,6 +20,7 @@
 
 import numpy as np
 
+
 class Element:
     def __init__(self):
         self._type = "FAKE"
@@ -114,4 +115,17 @@ class Element:
             tang_elem[:,:] += w * det_j * grad.T.dot(tgt.dot(grad))
             reac_elem[:,:] -= w * det_j * grad.T.dot(pb._solution.getFieldAtElemInteg("dual", t_incr, self._rank, ip))
 
-    
+
+    def computeBtCB(self, tang_elem, material, dim):
+        for ip in self._integrator:
+            grad = self.grad(ip)
+            w, xip = self._integrator[ip]
+            det_j= np.abs(self.det(self._interpolator.jacobian(xip, self._coors[:,:dim])))
+            tang_elem[:,:] += w * det_j * grad.T.dot(material.getLinearOperator().dot(grad))
+
+    def computeNtN(self, mass_elem, dim):
+        for ip in self._integrator:
+            shapef = self.shape(ip)
+            w, xip = self._integrator[ip]
+            det_j= np.abs(self.det(self._interpolator.jacobian(xip, self._coors[:,:dim])))
+            mass_elem[:,:] += w * det_j * shapef.T.dot(shapef)

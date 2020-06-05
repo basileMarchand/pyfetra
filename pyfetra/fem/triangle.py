@@ -28,7 +28,7 @@ class Triangle3Thermal(Triangle3Nodes):
 
     def shape( self, ip ):
         _, x = self._integrator[ip]
-        return self.shape( x )
+        return self._interpolator.shape( x )
 
     def grad( self, ip ):
         _, x = self._integrator[ip]
